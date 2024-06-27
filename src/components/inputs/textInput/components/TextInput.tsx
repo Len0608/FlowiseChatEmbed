@@ -71,23 +71,29 @@ export const TextInput = (props: Props) => {
   };
 
   const handleKeyPress = (e: KeyboardEvent) => {
-    const isIMEComposition = e.isComposing || e.keyCode === 229;
-    if (e.key === 'Backspace' && !isIMEComposition) {
+    if (e.key === 'Backspace') {
         deleteCharacter();
-        return; // Exit early if Backspace is pressed
     }
-};
+  };
 
-const deleteCharacter = () => {
-    const inputField = document.getElementById('inputField') as HTMLInputElement;
-    const currentText = inputField.value;
-    const cursorPosition = inputField.selectionStart;
-     if (cursorPosition > 0) {
-        const newText = currentText.substring(0, cursorPosition - 1) + currentText.substring(cursorPosition);
-        inputField.value = newText;
-        inputField.setSelectionRange(cursorPosition - 1, cursorPosition - 1);
+    const deleteCharacter = () => {
+        const inputField = document.getElementById('inputField') as HTMLInputElement;
+        const cursorPosition = inputField.selectionStart;
+
+    // Check if there's a character to delete before the cursor
+        if (cursorPosition > 0) {
+            const currentValue = inputField.value;
+            const newValue = currentValue.slice(0, cursorPosition - 1) + currentValue.slice(cursorPosition);
+        
+        // Update input field value and cursor position
+            inputField.value = newValue;
+            inputField.setSelectionRange(cursorPosition - 1, cursorPosition - 1);
     }
-};
+  };
+
+  const inputField = document.getElementById('inputField') as HTMLInputElement;
+  inputField.addEventListener('keydown', handleKeyPress);
+
 
   const handleImageUploadClick = () => {
     if (fileUploadRef) fileUploadRef.click();
