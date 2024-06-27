@@ -1,6 +1,6 @@
 import { ShortTextInput } from './ShortTextInput';
 import { isMobile } from '@/utils/isMobileSignal';
-import { Show, createSignal, createEffect, onMount, Setter } from 'solid-js';
+import { Show, createSignal, onMount, Setter } from 'solid-js';
 import { SendButton } from '@/components/buttons/SendButton';
 import { FileEvent, UploadsConfig } from '@/components/Bot';
 import { ImageUploadButton } from '@/components/buttons/ImageUploadButton';
@@ -39,14 +39,14 @@ export const TextInput = (props: Props) => {
   let fileUploadRef: HTMLInputElement | undefined;
   let audioRef: HTMLAudioElement | undefined;
 
-  const handleInput = (inputValue: string) => {
-    const wordCount = inputValue.length;
+  const handleInput = (newValue: string) => {
+    const wordCount = newValue.length;
 
     if (props.maxChars && wordCount > props.maxChars) {
       setWarningMessage(props.maxCharsWarningMessage ?? `You exceeded the characters limit. Please input less than ${props.maxChars} characters.`);
       setIsSendButtonDisabled(true);
     } else {
-      setInputValue(inputValue);
+      setInputValue(newValue);
       setWarningMessage('');
       setIsSendButtonDisabled(false);
     }
@@ -87,14 +87,6 @@ export const TextInput = (props: Props) => {
       inputRef?.setSelectionRange(cursorPosition - 1, cursorPosition - 1);
     }
   };
-
-  createEffect(() => {
-    const shouldAutoFocus = props.autoFocus !== undefined ? props.autoFocus : !isMobile() && window.innerWidth > 640;
-
-    if (!props.disabled && shouldAutoFocus && inputRef) {
-      inputRef.focus();
-    }
-  });
 
   onMount(() => {
     const shouldAutoFocus = props.autoFocus !== undefined ? props.autoFocus : !isMobile() && window.innerWidth > 640;
@@ -159,6 +151,7 @@ export const TextInput = (props: Props) => {
           disabled={props.disabled}
           placeholder={props.placeholder ?? 'Type your question'}
           onKeyDown={submitWhenEnter}
+          onKeyPress={handleKeyPress}
         />
         {props.uploadsConfig?.isSpeechToTextEnabled ? (
           <RecordAudioButton
