@@ -70,11 +70,25 @@ export const TextInput = (props: Props) => {
     if (e.key === 'Enter' && !isIMEComposition && warningMessage() === '') submit();
   };
 
-  const submitWhenEnter = (e: KeyboardEvent) => {
-    const isIMEComposition = e.isComposing
-    if (e.key === 'Return' && !isIMEComposition && warningMessage() === '') submit();
-  };
-  
+  const handleKeyPress = (e: KeyboardEvent) => {
+    const isIMEComposition = e.isComposing || e.keyCode === 229;
+    if (e.key === 'Backspace' && !isIMEComposition) {
+        deleteCharacter();
+        return; // Exit early if Backspace is pressed
+    }
+};
+
+const deleteCharacter = () => {
+    const inputField = document.getElementById('inputField') as HTMLInputElement;
+    const currentText = inputField.value;
+    const cursorPosition = inputField.selectionStart;
+     if (cursorPosition > 0) {
+        const newText = currentText.substring(0, cursorPosition - 1) + currentText.substring(cursorPosition);
+        inputField.value = newText;
+        inputField.setSelectionRange(cursorPosition - 1, cursorPosition - 1);
+    }
+};
+
   const handleImageUploadClick = () => {
     if (fileUploadRef) fileUploadRef.click();
   };
