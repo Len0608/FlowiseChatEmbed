@@ -28,15 +28,15 @@ type Props = {
 
 const defaultBackgroundColor = '#ffffff';
 const defaultTextColor = '#303235';
-// CDN link for default send sound
 const defaultSendSound = 'https://cdn.jsdelivr.net/gh/FlowiseAI/FlowiseChatEmbed@latest/src/assets/send_message.mp3';
 
 export const TextInput = (props: Props) => {
   const [inputValue, setInputValue] = createSignal(props.defaultValue ?? '');
   const [isSendButtonDisabled, setIsSendButtonDisabled] = createSignal(false);
   const [warningMessage, setWarningMessage] = createSignal('');
-  let inputRef: HTMLInputElement | HTMLTextAreaElement | undefined;
-  let fileUploadRef: HTMLInputElement | HTMLTextAreaElement | undefined;
+
+  let inputRef: HTMLInputElement | undefined;
+  let fileUploadRef: HTMLInputElement | undefined;
   let audioRef: HTMLAudioElement | undefined;
 
   const handleInput = (inputValue: string) => {
@@ -45,12 +45,11 @@ export const TextInput = (props: Props) => {
     if (props.maxChars && wordCount > props.maxChars) {
       setWarningMessage(props.maxCharsWarningMessage ?? `You exceeded the characters limit. Please input less than ${props.maxChars} characters.`);
       setIsSendButtonDisabled(true);
-      return;
+    } else {
+      setInputValue(inputValue);
+      setWarningMessage('');
+      setIsSendButtonDisabled(false);
     }
-
-    setInputValue(inputValue);
-    setWarningMessage('');
-    setIsSendButtonDisabled(false);
   };
 
   const checkIfInputIsValid = () => inputValue() !== '' && warningMessage() === '' && inputRef?.reportValidity();
@@ -67,48 +66,42 @@ export const TextInput = (props: Props) => {
 
   const submitWhenEnter = (e: KeyboardEvent) => {
     const isIMEComposition = e.isComposing || e.keyCode === 229;
-    if (e.key === 'Enter' && !isIMEComposition && warningMessage() === '') submit();
+    if (e.key === 'Enter' && !isIMEComposition && warningMessage() === '') {
+      submit();
+    }
   };
 
   const handleKeyPress = (e: KeyboardEvent) => {
     if (e.key === 'Backspace') {
-        deleteCharacter();
+      deleteCharacter();
     }
   };
 
-    const deleteCharacter = () => {
-        const inputField = document.getElementById('inputField') as HTMLInputElement;
-        const cursorPosition = inputField.selectionStart;
+  const deleteCharacter = () => {
+    const currentInputValue = inputValue();
+    const cursorPosition = inputRef?.selectionStart ?? 0;
 
-    // Check if there's a character to delete before the cursor
-        if (cursorPosition > 0) {
-            const currentValue = inputField.value;
-            const newValue = currentValue.slice(0, cursorPosition - 1) + currentValue.slice(cursorPosition);
-        
-        // Update input field value and cursor position
-            inputField.value = newValue;
-            inputField.setSelectionRange(cursorPosition - 1, cursorPosition - 1);
+    if (cursorPosition > 0) {
+      const newValue = currentInputValue.slice(0, cursorPosition - 1) + currentInputValue.slice(cursorPosition);
+      setInputValue(newValue);
+      inputRef?.setSelectionRange(cursorPosition - 1, cursorPosition - 1);
     }
-  };
-
-  const inputField = document.getElementById('inputField') as HTMLInputElement;
-  inputField.addEventListener('keydown', handleKeyPress);
-
-
-  const handleImageUploadClick = () => {
-    if (fileUploadRef) fileUploadRef.click();
   };
 
   createEffect(() => {
     const shouldAutoFocus = props.autoFocus !== undefined ? props.autoFocus : !isMobile() && window.innerWidth > 640;
 
-    if (!props.disabled && shouldAutoFocus && inputRef) inputRef.focus();
+    if (!props.disabled && shouldAutoFocus && inputRef) {
+      inputRef.focus();
+    }
   });
 
   onMount(() => {
     const shouldAutoFocus = props.autoFocus !== undefined ? props.autoFocus : !isMobile() && window.innerWidth > 640;
 
-    if (!props.disabled && shouldAutoFocus && inputRef) inputRef.focus();
+    if (!props.disabled && shouldAutoFocus && inputRef) {
+      inputRef.focus();
+    }
 
     if (props.sendMessageSound) {
       if (props.sendSoundLocation) {
@@ -118,6 +111,10 @@ export const TextInput = (props: Props) => {
       }
     }
   });
+
+  const handleImageUploadClick = () => {
+    if (fileUploadRef) fileUploadRef.click();
+  };
 
   const handleFileChange = (event: FileEvent<HTMLInputElement>) => {
     props.handleFileChange(event);
@@ -133,7 +130,6 @@ export const TextInput = (props: Props) => {
         'background-color': props.backgroundColor ?? defaultBackgroundColor,
         color: props.textColor ?? defaultTextColor,
       }}
-      onKeyDown={submitWhenEnter}
     >
       <Show when={warningMessage() !== ''}>
         <div class="w-full px-4 pt-4 pb-1 text-red-500 text-sm" data-testid="warning-message">
@@ -156,12 +152,13 @@ export const TextInput = (props: Props) => {
           </>
         ) : null}
         <ShortTextInput
-          ref={inputRef as HTMLTextAreaElement}
+          ref={(el) => (inputRef = el as HTMLInputElement)}
           onInput={handleInput}
           value={inputValue()}
           fontSize={props.fontSize}
           disabled={props.disabled}
           placeholder={props.placeholder ?? 'Type your question'}
+          onKeyDown={submitWhenEnter}
         />
         {props.uploadsConfig?.isSpeechToTextEnabled ? (
           <RecordAudioButton
