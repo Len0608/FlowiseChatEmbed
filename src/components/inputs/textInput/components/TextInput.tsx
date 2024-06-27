@@ -70,6 +70,11 @@ export const TextInput = (props: Props) => {
     if (e.key === 'Enter' && !isIMEComposition && warningMessage() === '') submit();
   };
 
+  const submitWhenEnter = (e: KeyboardEvent) => {
+    const isIMEComposition = e.isComposing
+    if (e.key === 'Return' && !isIMEComposition && warningMessage() === '') submit();
+  };
+  
   const handleImageUploadClick = () => {
     if (fileUploadRef) fileUploadRef.click();
   };
